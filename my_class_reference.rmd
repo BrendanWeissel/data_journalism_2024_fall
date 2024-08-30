@@ -33,3 +33,17 @@ setwd("~/jour472/data_journalism_2024_fall")
 install.packages("tidyverse")
 library(tidyverse)
 ```
+Here is how to add: 
+```{r}
+2+2
+```
+
+Here is how to add a data set from a website:
+```{r}
+maryland_winred_contributions <- read_rds("https://thescoop.org/files/maryland_winred.rds")
+```
+Here is how the see the first 6 rows of data: 
+```{r}
+head(maryland_winred_contributions)
+```
+
