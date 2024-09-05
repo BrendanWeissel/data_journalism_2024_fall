@@ -1,0 +1,139 @@
+---
+title: "lab_01"
+author: "Brendan Weissel"
+date: "2024-09-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Turn off scientific notation
+options(scipen=999)
+```
+
+## About this lab
+
+To complete this lab, you need to: \* run existing code as directed (look for **Task**). \* modify existing code as directed (look for **Task**). \* write code in empty codeblocks provided to answer questions included (look for **Q**). \* write out the answer in the form of a complete sentence in the space given (look for **A**). When you are finished, commit changes and push to your personal GitHub repo, then submit the URL to this document on ELMS.
+
+Remember to add any new verbs or concepts to your reference notebook!
+
+## Load libraries and establish settings
+
+**Task** Run the codeblock below to load the Tidyverse. To run the codeblock, hit the little green play button in the upper right corner of the gray area (the codeblock) below.
+
+```{r}
+# Load the tidyverse. If you have not installed the tidyverse already, remove the # from the next line and run it first.  
+# install.packages('tidyverse')
+library(tidyverse)
+```
+
+## Load Data
+
+We're going to load the slice of WinRed contribution data from West Virginia, which is in a file called `lab_01.rds`
+
+**Task** Using the example from the pre_lab, write code to load the RDS file and assign it to a good variable name.
+
+```{r}
+wv_winred_contributions <- read_rds("lab_01.rds")
+
+```
+
+## Examine Data
+
+**Task** Run the codeblock below to use glimpse to get a sense of the column names, types and sample data.
+
+```{r}
+glimpse(wv_winred_contributions)
+
+```
+
+
+**Q1** How many rows and columns does this dataframe have?
+
+**A1** 
+Rows:40,441
+Columns: 24
+
+## Answer questions
+
+
+**Q2** Which West Virginia city provided the largest number of contributions? How many?
+
+```{r}
+wv_winred_contributions |>
+  group_by(city) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount),
+  ) |>
+  arrange(desc(count_contribs))
+```
+
+**A2**
+Charleston, 3226 contributions
+
+**Q3** Which West Virginia cities accounted for the fewest contributions? How many of them, roughly speaking?
+
+```{r}
+wv_winred_contributions |>
+  group_by(city) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount),
+  ) |>
+  arrange((count_contribs))
+```
+
+**A3** 63 different cities had 1 contribution each.
+
+
+
+**Q4** What's your best educated guess to explain why the city identified in question 2 had more contributions compared to the cities identified in question 3? Hint: you won't find the answer in the data, you'll need to do some quick web research. You do not need to write any code for this question, so no codeblock is provided.
+
+**A4** Charleston is the largest city in WV and many of the cities from questions 3 are unicorperated census designated municipalites with small populations. 
+
+
+**Q5** What recipient got the largest total amount of money? How many contributions did they receive and what was the average donation?
+
+```{r}
+wv_winred_contributions |>
+  group_by(memo_text) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount),
+    mean_amount = mean(amount),
+  ) |>
+  arrange(desc(count_contribs))
+```
+**A5**
+TRUMP NATIONAL COMMITTEE JFC, INC. got the largest amount of money. The fund received 14063 donations with an average donation of $32.99
+
+
+**Q6** What is that top recipient and what explains its popularity? Hint: this will require web research, you won't be able to answer this purely from the data set. You do not need to write any code for this question, so no codeblock is provided.
+
+**A6** The top recipient is a joint fundraising committee between Donald Trump and the RNC. This fund is popular because it supports the Trump presidential election campaign. In addition this JFC type of fund specifically raises a lot of money because it allows large donors to write one large check in stead of many smaller ones. 
+
+**Q7**. Using the answer from A5 as a starting point, produce a summary table that has the following information for each recipient: \* count of contributions \* total amount of all contributions \* the average contribution amount \* the median contribution amount \* the smallest contribution amount \* the largest contribution amount
+
+Store it as a variable object called `wv_summary` so that you can examine it with the data viewer. What newsworthy nuggets jump out at you that you could imagine dropping into a news story? Write a few summary sentences with overall findings.
+
+```{r}
+wv_summary <- 
+wv_winred_contributions |>
+   group_by(memo_text) |>
+  summarise(
+    count_contribs = n(),
+    total_amount = sum(amount),
+    mean_amount = mean(amount),
+    median_amount = median(amount),
+    min_amount = min(amount),
+    max_amount = max(amount)
+  ) |>
+  arrange(desc(count_contribs))
+
+```
+
+**A7** The TRUMP NATIONAL COMMITTEE JFC, INC. fund is by far the most popular fund in West Virginia for total contributions and total amount donated. Around $87,000 total was refunded from 1298 contributions. Ted Cruz who is running for Senator in Texas received 503 total donations for total of around $7000. 
+The NRSC was the fund that received the most donations that was not directly tied to Trump. 
+
+
