@@ -46,5 +46,12 @@ Here is how the see the first 6 rows of data:
 ```{r}
 head(maryland_winred_contributions)
 ```
+Remove duplicate rows
+```{r}
+ distinct()
 
+
+```
+
+tr_tot_title() to standarize capitalization in the "city" field
 
