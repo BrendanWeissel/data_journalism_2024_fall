@@ -1,0 +1,108 @@
+---
+title: "lab_05"
+author: "Brendan Weissel"
+date: "2024-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and establish settings
+
+```{r}
+# load the tidyverse
+library(tidyverse)
+library(lubridate)
+```
+
+## Getting Started
+
+This week we'll be combining and joining data to make it more useful and to ask some questions about it. This week, we'll revisit our new Maryland voters data and try to join it with contributions to the Harris campaign from Maryland donors made via ActBlue. Can we find new voters who are not registered Democrats who gave to Harris after she became a presidential candidate on July 21? What, if anything, can we say about those people?
+
+We'll be doing something similar to what Ence Morse did for [this Washington Post story](https://www.washingtonpost.com/politics/2024/09/24/kamala-harris-younger-donors/?pwapi_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyZWFzb24iOiJnaWZ0IiwibmJmIjoxNzI3MzIzMjAwLCJpc3MiOiJzdWJzY3JpcHRpb25zIiwiZXhwIjoxNzI4NzA1NTk5LCJpYXQiOjE3MjczMjMyMDAsImp0aSI6ImIwYWMxNTk4LWMwMDgtNDE5Ny04MjAyLWVmMWNjZWFmYWZiMiIsInVybCI6Imh0dHBzOi8vd3d3Lndhc2hpbmd0b25wb3N0LmNvbS9wb2xpdGljcy8yMDI0LzA5LzI0L2thbWFsYS1oYXJyaXMteW91bmdlci1kb25vcnMvIn0.3-s0tBkMV7Y9DD21CBsKMlaliGlOKT2egCO-UFT735Y), just on a smaller scale.
+
+First, load two CSV contribution files in the `data` folder, one each for donations made in July and August, and then combine them into a single dataframe.
+
+```{r}
+# load the Harris contribution data files and combine them
+august_harris <- read_csv("data/august_harris.csv")
+july_harris <- read_csv("data/july_harris.csv")
+
+harris_contribs_combined <- bind_rows(list(august_harris,july_harris ))
+View(harris_contribs_combined)
+
+```
+
+Next, let's read in the new voters (people who registered in 2024):
+
+```{r}
+# load the new voters data
+new_voters <- read_csv("data/new_voters.csv")
+
+```
+
+Next join the Harris donations to the voter data. Remember, people's names are common, __so you'll want to use name columns and address information__. You'll need to figure out which columns to use from both dataframes. The new_voters data has both a single Address column and various parts of the address, such as HouseNumber. Make a plan for picking your join columns - try out some combinations - and save the results to a new dataframe.
+
+```{r}
+# join the combined Harris file to the new voters
+# you will need to determine what columns to use
+
+new_voters_with_contributors_name_zipcode <- harris_contribs_combined |> inner_join(new_voters, join_by(first_name == FirstName, last_name == LastName, zip == ResidentialZip)) |> 
+    select(last_name, first_name, address_one, city, state, zip, date, amount, aggregate_amount, employer, occupation, Party, Gender, Address)
+
+
+new_voters_with_contributors_name_zipcode_address_city <- harris_contribs_combined |> inner_join(new_voters, join_by(first_name == FirstName, last_name == LastName, zip == ResidentialZip, city == ResidentialCity, address_one == Address)) |> 
+    select(last_name, first_name, address_one, city, state, zip, date, amount, aggregate_amount, employer, occupation, Party, Gender)
+
+
+```
+
+## Answer questions
+
+Q1. Explain why you used the columns you did to make the join, and why that result is better than other ways you tried. Are there any problems with the join you made, such as the possibility of false positives?
+
+A1. I chose the columns first name, last name, zip code, city and address. I tried doing this without city and address and have 815 results so this way is better because using the exact address made it more precise. It is possible the join is too specific if the addresses are entered differently then they would be eliminated from the join. The some goes for the other entries but Address is the most likley to have mistakes. 
+
+Q2. Based on your join, how many donations to Harris have come from people who registered this year? How many unique people does that represent, and which donors have given the largest _number_ of donations since July 20? 
+
+A2. It represents 236 unique people. Three different donors have given sevem different times there names are BRITTANY
+MUSOLINO, ERIC SNIPE, SOPHIA HOFFER-PERKINS
+
+```{r}
+voters_joined_by_individual_2 <- new_voters_with_contributors_name_zipcode_address_city |> 
+  group_by(last_name, first_name, Party, Gender) |> 
+  summarise(number_contribs = n()) |> 
+  arrange(desc(number_contribs)) 
+
+```
+
+Q3. What are the party and gender breakdowns of those donors? How many donations has Harris gotten from non-Democrats?
+
+A3. 32 total donations came from non-democrats and 140 total donations came from men and 172 total donations came from Women, 12 total donations came from people with no gender specified.
+
+```{r}
+voters_by_gender <- new_voters_with_contributors_name_zipcode_address_city |> 
+ group_by(Gender) |> 
+  summarise(number_contribs = n())
+
+voters_by_party<- new_voters_with_contributors_name_zipcode_address_city |> 
+ group_by(Party) |> 
+  summarise(number_contribs = n())
+
+```
+
+Q4. Choose your own adventure: I want you to come up with a question you could ask of one of the dataframes we've created for this lab. It could involve just the new voters, or the donors or the joined dataframe, but it cannot be a variation of a previous question (so, for example, you can't ask, "How many Republicans have given to Harris"). First write the question and then try to answer it by writing code. If you're not sure of the exact code, try googling (or ask me for advice) but, at a minimum, describe what you think you'd have to do to answer it and what the results would look like. That can help.
+
+My Question: What zipcode has the most amount of donations, and where is that zipcode located?
+
+```{r}
+voters_by_zip <- new_voters_with_contributors_name_zipcode_address_city |> 
+ group_by(zip) |> 
+  summarise(number_contribs = n()) |> 
+arrange(desc(number_contribs)) 
+```
+
+
+A4: 20814 and 20814 both have has 15 donations. These are neighboring places located in Bethesda and Chevy Chase. 
