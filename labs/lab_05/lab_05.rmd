@@ -3,7 +3,7 @@ title: "lab_05"
 author: "Brendan Weissel"
 date: "2024-10-02"
 output: html_document
----
+--- 
 
 ```{r setup, include=FALSE}
 #knitr::opts_chunk$set(echo = TRUE)
@@ -80,7 +80,7 @@ voters_joined_by_individual_2 <- new_voters_with_contributors_name_zipcode_addre
 
 Q3. What are the party and gender breakdowns of those donors? How many donations has Harris gotten from non-Democrats?
 
-A3. 32 total donations came from non-democrats and 140 total donations came from men and 172 total donations came from Women, 12 total donations came from people with no gender specified.
+A3. 32 total donations came from non-democrats and 140 total donations came from men and 172 total donations came from Women, 12 total donations came from people with no gender specified.,.
 
 ```{r}
 voters_by_gender <- new_voters_with_contributors_name_zipcode_address_city |> 
@@ -105,4 +105,4 @@ arrange(desc(number_contribs))
 ```
 
 
-A4: 20814 and 20814 both have has 15 donations. These are neighboring places located in Bethesda and Chevy Chase. 
+A4: 20814 and 20814 both have has 15 donations. These are neighboring places located in Bethesda and Chevy Chase.  
