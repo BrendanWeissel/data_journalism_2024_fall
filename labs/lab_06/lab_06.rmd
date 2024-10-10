@@ -1,0 +1,296 @@
+---
+title: "lab_06"
+author: "Brendan Weissel"
+date: "2024-10-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You will need
+
+-   Tabula
+
+## Load libraries and establish settings
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load the tidyverse and any other libraries you'll need
+library(tidyverse)
+library(dplyr)
+
+```
+
+## Get Our PDF
+
+We'll be working with the [Maryland monthly voter registration update](https://elections.maryland.gov/pdf/vrar/2024_09.pdf) from the State Board of Elections. You'll want to download it to a place you'll remember (like your Downloads folder, or the labs folder in your repository). The goal is to write a couple of paragraphs that summarize the changes in voter registration in Maryland during the month of September.
+
+## Setup Tabula
+
+Start Tabula, then go to <http://127.0.0.1:8080/> in your browser. Click the "Browse" button and find the PDF file and click "open", and then click the "Import button" in Tabula. This will take a few seconds.
+
+This PDF has multiple possible tables to extract. We're going to make four dataframes: 
+
+* new registrations by party
+* removals by party
+* changes in registration
+* current registrations by county.
+
+You will need to draw boxes around four sections and export four CSV files that you will load into R. In Tabula, draw a box around the borders of those tables and click the "Preview & Export Extracted Data" button for each one. The export should look pretty clean, but might be missing some column headers. You'll need to include total columns.
+
+Export each CSV (each one should be called `tabula-2024-09.csv` by default, so you should rename them for clarity) to your lab_06/data folder.
+
+From there, you will need to read in and clean up the data, and in particular the headers. You can choose to include the headers from the PDF in your exported CSV files OR to exclude them and add them when importing. The pre_lab has an example of how to do this!
+
+## Load and clean up the data in R
+
+You will need to read in and clean up the data so that it can be used for analysis. By "clean" I mean the column headers must not contain spaces and they should have meaningful names, not "x1" or something similar. The current registrations dataframe *MUST* include the county name, but should not include the columns under `Changes` and `Party Affiliation From`. How you do that is up to you (and could involve something outside R), but you can use `select()` with or without the minus sign to include or exclude certain columns. You also can use the `rename` function to, well, rename columns.
+
+```{r}
+# New Party registrations
+new_reg_24 <- read_csv("data/newreg24.csv")
+new_reg_24 <- new_reg_24 |>
+  rename(Type = ...1) 
+
+```
+
+```{r}
+# Removals
+removals_24 <- read_csv("data/removals24.csv")
+removals_24 <- removals_24 |>
+  filter(!is.na(...11)) |> 
+  select(-DEM...2, -REP...3, -NLM...4, -LIB...5, -GRN...6, -UNAF...7, -OTH...8, -TOTAL...9, -DUPS,-...1,) |> 
+  rename(Type = ...11, DEM = DEM...12, REP = REP...13, NLM = NLM...14, LIB = LIB...15, GRN = GRN...16, UNAF = UNAF...17, OTH = OTH...18, TOTAL = TOTAL...19) 
+
+```
+
+```{r}
+# Changes
+changes_24 <- read_csv("data/changes24.csv")
+changes_24 <- changes_24 |>
+  rename(County = ...1) 
+
+
+```
+
+```{r}
+# Current registrations
+current_reg_24 <- read_csv("data/currentreg24.csv")
+current_reg_24 <- current_reg_24 |> 
+  rename(County = ...1) |> 
+    select(-ADDRESS, -NAME, -DEM...4, -REP...5, -NLM...6, -LIB...7, -GRN...8, -UNAF...9, -OTH...10, -TOTAL...11) |> 
+   rename(DEM = DEM...12, REP = REP...13, NLM = NLM...14, LIB = LIB...15, GRN = GRN...16, UNAF = UNAF...17, OTH = OTH...18, TOTAL = TOTAL...19) 
+
+
+```
+
+## Rinse, Repeat: September 2022 data
+
+Do all of that again, for the [September 2022 voter registration update](https://elections.maryland.gov/pdf/vrar/2022_09.pdf), so we can compare the two. If you've done well, this is easy: just do the same steps in Tabula, export the files and use the same code to read in and clean up the data, *just remember to give these dataframes different names* so that you can compare September 2024 to September 2022.
+
+To answer the following questions, you'll need to calculate percentages and do other calculations. Whether you do that by combining or joining dataframes or you write code to run separately on both is up to you.
+
+```{r}
+# New Party registrations
+new_reg_22 <- read_csv("data/newreg22.csv")
+new_reg_22 <- new_reg_22 |>
+  rename(Type = ...1) 
+
+
+```
+
+```{r}
+# Removals
+removals_22 <- read_csv("data/removals22.csv")
+removals_22 <- removals_22 |>
+  filter(!is.na(...11)) |> 
+  select(-DEM...2, -REP...3, -GRN...4, -LIB...5, -WCP...6, -UNAF...7, -OTH...8, -TOTAL...9, -DUPS,-...1,) |> 
+  rename(Type = ...11, DEM = DEM...12, REP = REP...13, GRN = GRN...14, LIB = LIB...15, WCP = WCP...16, UNAF = UNAF...17, OTH = OTH...18, TOTAL = TOTAL...19) 
+```
+
+```{r}
+# Changes
+changes_22 <- read_csv("data/changes22.csv")
+changes_22 <- changes_22 |>
+  rename(County = ...1) 
+```
+
+```{r}
+# Current registrations
+current_reg_22 <- read_csv("data/currentreg22.csv")
+current_reg_22 <- current_reg_22 |> 
+  rename(County = ...1) |> 
+    select(-ADDRESS, -NAME, -DEM...4, -REP...5, -GRN...6, -LIB...7, -WCP...8, -UNAF...9, -OTH...10, -TOTAL...11) |> 
+   rename(DEM = DEM...12, REP = REP...13, GRN = GRN...14, LIB = LIB...15, WCP = WCP...16, UNAF = UNAF...17, OTH = OTH...18, TOTAL = TOTAL...19) 
+```
+
+## Answer questions
+
+Q1. Calculate the percentage of registered Democrats, Republicans and unaffiliated voters for the entire state in September 2024 and September 2022, and then calculate the percentage change for those three party categories (the formula for percentage change is easy to remember: (New-Old)/Old). How would you describe the changes in these partisan categories in a story? What's the most interesting thing about these changes that would be the lede of that story?
+
+To describe the changes from sep 22 to sep 24 in these categories I would explain the percent that they have changed and explain the significance of that and the implications that could have in races across the sate. I would lede with unaffiliated voters having an 8% increase from 2022 to 2024. 
+
+Sep22 
+% of total
+Dem - 54.08
+Rep - 24.0
+Unaf - 20.2
+
+Sep24 
+% of total
+Dem - 52.5
+Rep - 23.9
+Unaf - 21.8
+
+percent change 
+Dem - 3.0 decrease
+Rep - 0.6 decrease
+Unaf - 8.0 increase
+
+
+```{r}
+dem_total_24 <- current_reg_24[25,"DEM"]
+rep_total_24 <- current_reg_24[25,"REP"]
+unaf_total_24 <- current_reg_24[25,"UNAF"]
+total_24 <-current_reg_24[25,"TOTAL"]
+
+dem_total_22 <- current_reg_22[25,"DEM"]
+rep_total_22 <- current_reg_22[25,"REP"]
+unaf_total_22 <- current_reg_22[25,"UNAF"]
+total_22 <-current_reg_22[25,"TOTAL"]
+
+#dem percent of total
+dem_percentage_24 <- (dem_total_24 / total_24) * 100
+dem_percentage_22 <- (dem_total_22 / total_22) * 100
+
+#rep percent of total
+rep_percentage_24 <- (rep_total_24 / total_24) * 100
+rep_percentage_22 <- (rep_total_22 / total_22) * 100
+
+#unaf percent of total 
+unaf_percentage_24 <- (unaf_total_24 / total_24) * 100
+unaf_percentage_22 <- (unaf_total_22 / total_22) * 100
+
+#dem percent change
+dem_pchange <- ((dem_percentage_24 - dem_percentage_22) / dem_percentage_22) * 100
+
+#rep percent change
+rep_pchange <- ((rep_percentage_24 - rep_percentage_22) / rep_percentage_22) * 100
+
+#unaf percent change
+unaf_pchange <- ((unaf_percentage_24 - unaf_percentage_22) / unaf_percentage_22) *100
+
+```
+
+Q2. Among the Maryland jurisdictions with the most registered voters, which one had the biggest percentage increase in unaffiliated voters between 2022 and 2024? How did that county vote for governor in 2022 and for president in 2020? Contrast the partisan percentages of that county with the county that had the eighth-largest percentage increase in unaffiliated voters. You should display information from the data that shows the counties with the largest percentage increase first.
+
+A2. The county with the biggest percent increase in unaffiliated voters is Prince Georges county. The 8th largest was Frederick. In 2022 PG county voted overwhelmingly for Wes Moore and Joe Biden. Frederick county voted slightly in favor of Wes Moore and Joe Biden. Both voted a majority for the same candidates but PG county voted democrat in a more favoring way. 
+
+```{r}
+unaf_voters <- data.frame(
+  County = current_reg_22$County,
+    UNAF_22 = current_reg_22$UNAF,
+    UNAF_24 = current_reg_24$UNAF)
+
+unaf_voters_with_pchange <- unaf_voters |> 
+    mutate(Percent_Change = ((UNAF_24 - UNAF_22) / UNAF_22) * 100) |> 
+    arrange(desc(Percent_Change))
+```
+
+Q3. Do the party percentages of new registrants (% Dem, % Rep, % Unaffiliated) from September 2024 and September 2022 match the overall percentage of partisan registration in the state at those times?
+
+In other words, did new registrants mirror the overall partisan composition of the electorate, or were they different? Do any of the methods of registration vary significantly from the overall partisan pattern? Which method is worthy of further exploration?
+
+To compare is these I looked at the totals in question A1. The percent for new Republican registrants is lower than the overall state total and most importantly the unaffiliated percentage is significantly higher. It would be worth looking into why so few democrats register in person whereas that percentage is not as low for republicans. 
+
+Sep22
+% of total
+Dem - 51.6
+Rep - 15.0
+Unaf - 30.6
+
+Sep24 
+% of total
+Dem - 49.9
+Rep - 18.2
+Unaf - 28.7
+
+A3.
+
+```{r}
+dem_new_total_24 <- new_reg_24[17, "DEM"]   
+rep_new_total_24 <- new_reg_24[17, "REP"]
+unaf_new_total_24 <- new_reg_24[17, "UNAF"]
+total_new_24 <- new_reg_24[17, "TOTAL"]
+
+dem_new_total_22 <- new_reg_22[17, "DEM"]  
+rep_new_total_22 <- new_reg_22[17, "REP"]
+unaf_new_total_22 <- new_reg_22[17, "UNAF"]
+total_new_22 <- new_reg_22[17, "TOTAL"]
+
+dem_percentage_new_24 <- (dem_new_total_24 / total_new_24) * 100
+rep_percentage_new_24 <- (rep_new_total_24 / total_new_24) * 100
+unaf_percentage_new_24 <- (unaf_new_total_24 / total_new_24) * 100
+
+dem_percentage_new_22 <- (dem_new_total_22 / total_new_22) * 100
+rep_percentage_new_22 <- (rep_new_total_22 / total_new_22) * 100
+unaf_percentage_new_22 <- (unaf_new_total_22 / total_new_22) * 100
+
+```
+
+Q4. Choose your own adventure! Using both the 2024 and 2022 data for one of the dataframes (changes, removals or new registrations), ask and answer a question that makes at least one comparison and requires code to answer. That could involve calculating a percentage, percentage change or the raw difference between two columns.
+
+What party in the state is losing more voters to death by percetage? Compare the number of people who left by death by the entire number of people currently registered in the party. 
+
+Sep22
+% of total
+Dem - .078
+Rep - .086
+Unaf - .041
+
+Sep24 
+% of total
+Dem - .085
+Rep - .084
+Unaf - .039
+
+
+A4. This is really more of a comparison between Rep and Dem. It seems they both last about .08% from death but its not exact calculation becasue I realized in the process of doing this you would need the previous months data. However it still gives you a good general percentage. It seems both parties are losing a similar about of people to death. It would be intersting to see nationwide if that is the case. Looking at this could be intersting if you wanted to see who older people are regiered for both obvioulsy death isn't going to always be eldery. I didn't get a great finding here like I thought I would :( but it is still a cool piece of data to have looked into. 
+
+```{r}
+dem_dead_24 <- removals_24[5, "DEM"]   
+rep_dead_24 <- removals_24[5, "REP"]
+unaf_dead_24 <- removals_24[5, "UNAF"]
+
+dem_dead_22 <- removals_22[5, "DEM"]  
+rep_dead_22 <- removals_22[5, "REP"]
+unaf_dead_22 <- removals_22[5, "UNAF"]
+
+#Totals from Q1
+dem_total_24 <- current_reg_24[25, "DEM"]
+rep_total_24 <- current_reg_24[25, "REP"]
+unaf_total_24 <- current_reg_24[25, "UNAF"]
+
+dem_total_22 <- current_reg_22[25, "DEM"]
+rep_total_22 <- current_reg_22[25, "REP"]
+unaf_total_22 <- current_reg_22[25, "UNAF"]
+
+dem_dead_percent_24 <- (dem_dead_24 / dem_total_24) * 100
+rep_dead_percent_24 <- (rep_dead_24 / rep_total_24) * 100
+unaf_dead_percent_24 <- (unaf_dead_24 / unaf_total_24) * 100
+
+dem_dead_percent_22 <- (dem_dead_22 / dem_total_22) * 100
+rep_dead_percent_22 <- (rep_dead_22 / rep_total_22) * 100
+unaf_dead_percent_22 <- (unaf_dead_22 / unaf_total_22) * 100
+
+
+
+```
+
+Q5. What's the best story idea or question you've seen as a result of the work you've done in this lab?
+
+A5.The best story idea would be to interview people registering in-person and find out why they chose that method when there are many others. I would use the data that democrats don't often do that and find out why. I would make sure to include to talk with a democrat who did register in-person to still have that perspective. 
