@@ -128,6 +128,7 @@ cardin_page
 cardin_titles <- cardin_page |> 
   html_elements("a") |> 
   html_text()
+cardin_titles
 
 cardin_titles_tibble <- tibble(Title = cardin_titles)
 
