@@ -19,7 +19,7 @@ library(ggthemes)
 
 
 ```{r}
-ev_raw <- read.csv("Data/EarlyVoting_RAW_data.csv") 
+ev_raw <- read_csv("data/EV_RAW_DATA.csv") 
 
 ev_raw <- ev_raw |>
   clean_names()
@@ -37,6 +37,114 @@ votes_by_party <- ev_raw |>
   summarise(total_votes = sum(day1, day2, day3, day4, day5, day6, day7, day8, na.rm = TRUE)) |> 
   arrange(party_code)
 
+### votes by precinct 
+votes_by_precinct <- ev_raw|>
+  group_by(precinct)|>
+  summarise(total_votes = sum(day1, day2, day3, day4, day5, day6, day7, day8, na.rm = TRUE))|>
+  arrange(precinct)
+
+### votes by gender
+votes_by_gender <- ev_raw|>
+  group_by(gender_code)|>
+  summarise(total_votes = sum(day1, day2, day3, day4, day5, day6, day7, day8, na.rm = TRUE))|>
+  arrange(gender_code)
+
+### votes by age
+votes_by_age <- ev_raw|>
+  group_by(age_group)|>
+  summarise(total_votes = sum(day1, day2, day3, day4, day5, day6, day7, day8, na.rm = TRUE))|>
+  arrange(age_group)
+```
+
+**Q1: . What voting location and or county did younger age groups dominate voting early in? What do these places have in common?**
+
+**A1: Top counties with highest percent of young vote, 1. Saint Mary's, 2. Howard, 3. Charles, 4. Calvert, 5. Montgomery, 6. Frederick and the top location was this College Park Community Center. 
+
+
+
+```{r}
+#total votes by county
+total_votes_by_county <- ev_raw |>
+  group_by(county_name) |>
+  summarise(
+    total_votes = sum(across(starts_with("day"), ~ .x), na.rm = TRUE),
+       .groups = "drop"
+  )
+
+#total votes by ages 18-24 by county
+young_votes_by_county <- ev_raw |>
+  filter(age_group == "18-24") |>
+  group_by(county_name) |>
+  summarise(
+    young_votes = sum(across(starts_with("day"), ~ .x), na.rm = TRUE),
+       .groups = "drop"
+  )
+
+#calculating the voter share or percentage that young voters have in each county
+young_voters_by_county_by_percent <- young_votes_by_county |>
+  left_join(total_votes_by_county, by = "county_name") |>
+  mutate(young_vote_share = young_votes / total_votes) |>
+  arrange(desc(young_vote_share))
+
+head(young_voters_by_county_by_percent)
+
+#total votes by early voting location
+total_votes_by_location <- ev_raw |>
+  group_by(early_vote_center) |>
+  summarise(
+    total_votes = sum(across(starts_with("day"), ~ .x), na.rm = TRUE),
+    .groups = "drop"
+  )
+
+#total votes by ages 18-24 by early voting location
+young_votes_by_location <- ev_raw |>
+  filter(age_group == "18-24") |>
+  group_by(early_vote_center) |>
+  summarise(
+    young_votes = sum(across(starts_with("day"), ~ .x), na.rm = TRUE),
+    .groups = "drop"
+  )
+
+young_voters_by_location_by_percent <- young_votes_by_location |>
+  left_join(total_votes_by_location, by = "early_vote_center") |>
+  mutate(young_vote_share = young_votes / total_votes) |>
+  arrange(desc(young_vote_share))
+
+# View the first few rows of the results
+head(young_voters_by_location_by_percent)
+
+
+
 
 ```
 
+
+
+
+
+
+### Our original questions:
+
+1. What age group had the highest turn out for early voting?
+2. What county had the highest turnout for early voting?
+3. How does the 2024 early voting data compare to the 2020 early voting data?
+4. What counties had the closest margin between registered Republicans and Democrats who voted early? Can we identify any swing counties from this?
+5. How do early voting patterns vary among different demographic groups? 
+
+###: Our new questions:
+
+1. What precincts did younger age groups dominate voting early in? What do these precincts have in common?
+2. Are there any precincts where certain demographic groups outperformed their Census data? For example, are there precincts were 65% of the early voters were women despite women only being 50% of the voting age population?
+3.  Which precincts had the most early voters identifying outside of male/female? How did they vote?
+4. Which precincts have historically turned out more early voters than others? How did it compare this election?
+5. Do most precincts follow the general pattern of having the most people vote on the first and last days of early voting? Which precincts differ from this pattern?
+
+### How we've refined our questions:
+
+Based on your feedback, we're refining our questions to focus more on precinct-level data instead of overall state data. We are looking more closely at patterns that stand out in certain precincts - taking note of the unusual and trying to find the reasons behind it.
+
+### Describing any obvious limitations/flaws in our data - Why might we be unable to answer our previous questions? Describe the limits of the data in terms of the time frame, what is and is not included and any codes or other information we'll need to find definitions for, and what we've done to better define it. 
+
+The data we have is just early voting data. It's interesting to analyze because early voters are likely to be more civic duty-minded. But the early voter data doesn't tell us that much about the overall electorate, so it could be helpful to bring in actual results data and more information about the overall electorate.
+We'll likely use Census data so we can make more meaningful comparisons, plus voter registration data so we can look at voter turnout numbers. 
+As far as defining some of the terms in our questions and within our data, in the votes_by_gender table, what does "NA" actually mean? Did voters in that category mark a box? Did they write in something other than male or female? Was there an option that said "prefer not to say"?
